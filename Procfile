@@ -1,2 +1,2 @@
 web: npm start
-generate-dumps: npm run generate
+generate: ./dump-generation/generate.sh

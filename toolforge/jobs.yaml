@@ -2,13 +2,13 @@
 ---
 
 - name: wikidata-geo-dumps-generate
-  command: $TOOL_DATA_DIR/wikidata-geo-dumps/dump-generation/generate.sh
-  image: node20
+  command: generate
+  image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps
   schedule: "@daily"
   retry: 2
   emails: onfailure
 
 - name: wikidata-geo-dumps-test
-  image: node20
-  command: $TOOL_DATA_DIR/wikidata-geo-dumps/dump-generation/generate.sh --test
+  image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps
+  command: generate --test
   emails: all
