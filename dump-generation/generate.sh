@@ -1,8 +1,8 @@
 #!/bin/bash
 
-GDAL_DRIVER_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-export GDAL_DRIVER_PATH
-#export GDAL_DRIVER_PATH_ALLOWED="$GDAL_DRIVER_PATH"
+SCRIPT_DIR_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export GDAL_DRIVER_PATH="$SCRIPT_DIR_PATH"
+export GDAL_DRIVER_PATH_ALLOWED="$SCRIPT_DIR_PATH"
 #export GDAL_DATA="$(gdal-config --datadir 2>/dev/null || python3 -c 'from osgeo import gdal; print(gdal.GetConfigOption("GDAL_DATA"))')"
 
 SOURCE_DUMP='/public/dumps/public/wikidatawiki/entities/latest-all.json.gz'
