@@ -2,14 +2,15 @@
 
 SOURCE_DUMP='/public/dumps/public/wikidatawiki/entities/latest-all.json.gz'
 AVAILABLE_DUMP_DATE=$(date -r $SOURCE_DUMP "+%Y-%m-%d")
+OUT_DUMPS_DIR="$TOOL_DATA_DIR/$AVAILABLE_DUMP_DATE"
 if [[ " $* " == *" --test "* ]] ; then
     TEST_MODE=true
     set -e
     set -x
-    PLACES_JSON_PATH="./$AVAILABLE_DUMP_DATE/places.test.ndjson"
+    PLACES_JSON_PATH="$OUT_DUMPS_DIR/places.test.ndjson"
 else
     TEST_MODE=false
-    PLACES_JSON_PATH="./$AVAILABLE_DUMP_DATE/places.ndjson"
+    PLACES_JSON_PATH="$OUT_DUMPS_DIR/places.ndjson"
 fi
 
 declare -a filter_options
@@ -21,7 +22,7 @@ filter_options+=(--simplify --omit aliases --claim 'P625&~P585&~P376&~P580&~P571
 #TODO Allow P580, P571, P1619 (start dates) with values in the past
 #TODO Allow P582, P576, P3999 (end dates) with values in the future
 
-mkdir -p "./$AVAILABLE_DUMP_DATE"
+mkdir -p "$OUT_DUMPS_DIR"
 if [ -f $PLACES_JSON_PATH ]; then
     echo "$PLACES_JSON_PATH already exists"
 elif $TEST_MODE ; then
@@ -32,4 +33,6 @@ else
     #cat $SOURCE_DUMP | gzip -d | grep 'P625":' | wikibase-dump-filter "${curl_options[@]}" > $PLACES_JSON_PATH
     #TODO uncomment when implementation complete
 fi
+
+#TODO Convert ndjson to geographic formats
 
