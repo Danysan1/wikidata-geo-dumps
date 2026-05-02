@@ -13,7 +13,7 @@ available_dump_date=$(date -r $SOURCE_DUMP "+%Y-%m-%d")
 places_json_path="./$available_dump_date/places.ndjson"
 
 declare -a filter_options
-filter_options+=(--simplify --claim 'P625&~P585&~P376&~P580&~P571&~P1619&~P582&~P576&~P3999')
+filter_options+=(--simplify --omit aliases --claim 'P625&~P585&~P376&~P580&~P571&~P1619&~P582&~P576&~P3999')
 # P625 (coordinates) must be present
 # P585 (date) or P376 (located on astronomical body) must be absent
 #TODO Allow P3896 (geoshape) alternatively to P625
@@ -25,9 +25,9 @@ if [ -f $places_json_path ]; then
     echo "$places_json_path already exists"
 elif $TEST_MODE ; then
     echo "Filtering $places_json_path from only the first 10'000 lines"
-    cat $SOURCE_DUMP | gzip -d | head -10000 | cat - <(echo ']') | wikibase-dump-filter "${curl_options[@]}" > $places_json_path
+    time cat $SOURCE_DUMP | gzip -d | head -10000 | cat - <(echo ']') | grep 'P625":' | wikibase-dump-filter "${curl_options[@]}" > $places_json_path
 else
     echo "Filtering $places_json_path"
-    cat $SOURCE_DUMP | gzip -d | wikibase-dump-filter "${curl_options[@]}" > $places_json_path
+    cat $SOURCE_DUMP | gzip -d | grep 'P625":' | wikibase-dump-filter "${curl_options[@]}" > $places_json_path
 fi
 
