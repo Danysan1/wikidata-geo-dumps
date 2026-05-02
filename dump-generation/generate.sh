@@ -28,6 +28,7 @@ elif $TEST_MODE ; then
     time cat $SOURCE_DUMP | gzip -d | head -10000 | cat - <(echo ']') | grep 'P625":' | wikibase-dump-filter "${curl_options[@]}" > $places_json_path
 else
     echo "Filtering $places_json_path"
-    cat $SOURCE_DUMP | gzip -d | grep 'P625":' | wikibase-dump-filter "${curl_options[@]}" > $places_json_path
+    #cat $SOURCE_DUMP | gzip -d | grep 'P625":' | wikibase-dump-filter "${curl_options[@]}" > $places_json_path
+    #TODO uncomment when implementation complete
 fi
 
