@@ -14,10 +14,10 @@ if [[ " $* " == *" --test "* ]] ; then
     TEST_MODE=true
     set -e
     set -x
-    OUT_DUMPS_DIR="$TOOL_DATA_DIR/$AVAILABLE_DUMP_DATE-test"
+    OUT_DUMPS_DIR="$TOOL_DATA_DIR/dist/dumps/$AVAILABLE_DUMP_DATE-test"
 else
     TEST_MODE=false
-    OUT_DUMPS_DIR="$TOOL_DATA_DIR/$AVAILABLE_DUMP_DATE"
+    OUT_DUMPS_DIR="$TOOL_DATA_DIR/dist/dumps/$AVAILABLE_DUMP_DATE"
 fi
 PLACES_NDJSON_PATH="$OUT_DUMPS_DIR/places.ndjson"
 PLACES_GEOJSON_PATH="$OUT_DUMPS_DIR/places.geojson"
@@ -46,10 +46,15 @@ fi
 
 if [ -f "$PLACES_GEOJSON_PATH" ]; then
     echo "$PLACES_GEOJSON_PATH already exists"
-else
+elif $TEST_MODE ; then # GeoJSON supported only on small files in test mode
     echo "Converting $PLACES_NDJSON_PATH to $PLACES_GEOJSON_PATH"
     time ogr2ogr -f GeoJSON "$PLACES_GEOJSON_PATH" "$PLACES_NDJSON_PATH"
 fi
 
-#TODO Convert geojson to FlatGeobuf
+if [ -f "$PLACES_FLATGEOBUF_PATH" ]; then
+    echo "$PLACES_FLATGEOBUF_PATH already exists"
+else
+    echo "Converting $PLACES_NDJSON_PATH to $PLACES_FLATGEOBUF_PATH"
+    time ogr2ogr -f FlatGeobuf "$PLACES_FLATGEOBUF_PATH" "$PLACES_NDJSON_PATH"
+fi
 
