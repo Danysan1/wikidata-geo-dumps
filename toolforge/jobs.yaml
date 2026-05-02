@@ -6,9 +6,11 @@
   image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps:latest
   schedule: "@daily"
   retry: 2
+  mount: all
   emails: onfailure
 
 - name: wikidata-geo-dumps-test
   image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps:latest
   command: generate --test
-  emails: all
+  mount: all
+  emails: onfailure

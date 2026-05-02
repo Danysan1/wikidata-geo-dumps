@@ -4,6 +4,11 @@ GDAL_DRIVER_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export GDAL_DRIVER_PATH
 
 SOURCE_DUMP='/public/dumps/public/wikidatawiki/entities/latest-all.json.gz'
+if [ ! -f "$SOURCE_DUMP" ]; then
+    echo "Source dump missing: $SOURCE_DUMP"
+    exit 1
+fi
+
 AVAILABLE_DUMP_DATE=$(date -r $SOURCE_DUMP "+%Y-%m-%d")
 if [[ " $* " == *" --test "* ]] ; then
     TEST_MODE=true
