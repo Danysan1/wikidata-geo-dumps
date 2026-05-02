@@ -1,4 +1,4 @@
 [com.heroku.buildpacks.deb-packages]
 install = [
-    "gdal"
+    "gdal-bin"
 ]
