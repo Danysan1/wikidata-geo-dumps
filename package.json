@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "serve": "^14.2.6",
+    "wikibase-dump-filter": "^6.1.1"
+  },
+  "scripts": {
+    "start": "serve -s dist"
+  }
+}
