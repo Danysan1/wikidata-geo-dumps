@@ -1,3 +1,3 @@
 #!/bin/sh
 
-toolforge jobs restart generate-dump
+toolforge jobs restart wikidata-geo-dumps-generate
