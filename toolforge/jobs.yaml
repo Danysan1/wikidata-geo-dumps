@@ -1,12 +1,14 @@
 # https://wikitech.wikimedia.org/wiki/Help:Toolforge/Jobs_framework
 ---
+
 - name: wikidata-geo-dumps-generate
-  command: $TOOL_DATA_DIR/dump-generation/generate.sh
+  command: $TOOL_DATA_DIR/wikidata-geo-dumps/dump-generation/generate.sh
   image: node20
   schedule: "@daily"
   retry: 2
   emails: onfailure
+
 - name: wikidata-geo-dumps-test
   image: node20
-  command: $TOOL_DATA_DIR/dump-generation/generate.sh --test
+  command: $TOOL_DATA_DIR/wikidata-geo-dumps/dump-generation/generate.sh --test
   emails: all
