@@ -3,12 +3,12 @@
 
 - name: wikidata-geo-dumps-generate
   command: generate
-  image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps
+  image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps:latest
   schedule: "@daily"
   retry: 2
   emails: onfailure
 
 - name: wikidata-geo-dumps-test
-  image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps
+  image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps:latest
   command: generate --test
   emails: all
