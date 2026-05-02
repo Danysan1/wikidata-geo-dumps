@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 ./update-web-service.sh
 toolforge jobs load jobs.yaml

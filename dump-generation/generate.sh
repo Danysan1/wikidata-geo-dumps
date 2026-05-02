@@ -37,24 +37,24 @@ if [ -f "$PLACES_NDJSON_PATH" ]; then
     echo "$PLACES_NDJSON_PATH already exists"
 elif $TEST_MODE ; then
     echo "Filtering $PLACES_NDJSON_PATH from only the first 10'000 lines from $SOURCE_DUMP"
-    time cat $SOURCE_DUMP | gzip -d | head -10000 | cat - <(echo ']') | grep 'P625":' | wikibase-dump-filter "${curl_options[@]}" > $PLACES_NDJSON_PATH
+    cat $SOURCE_DUMP | gzip -d | head -10000 | cat - <(echo ']') | grep 'P625":' | wikibase-dump-filter "${curl_options[@]}" > $PLACES_NDJSON_PATH
 else
     echo "Filtering $PLACES_NDJSON_PATH from $SOURCE_DUMP"
     exit 1 #TODO delete when implementation complete
-    #time cat $SOURCE_DUMP | gzip -d | grep 'P625":' | wikibase-dump-filter "${curl_options[@]}" > $PLACES_NDJSON_PATH
+    #cat $SOURCE_DUMP | gzip -d | grep 'P625":' | wikibase-dump-filter "${curl_options[@]}" > $PLACES_NDJSON_PATH
 fi
 
 if [ -f "$PLACES_GEOJSON_PATH" ]; then
     echo "$PLACES_GEOJSON_PATH already exists"
 elif $TEST_MODE ; then # GeoJSON supported only on small files in test mode
     echo "Converting $PLACES_NDJSON_PATH to $PLACES_GEOJSON_PATH"
-    time ogr2ogr -f GeoJSON "$PLACES_GEOJSON_PATH" "$PLACES_NDJSON_PATH"
+    ogr2ogr -f GeoJSON "$PLACES_GEOJSON_PATH" "$PLACES_NDJSON_PATH"
 fi
 
 if [ -f "$PLACES_FLATGEOBUF_PATH" ]; then
     echo "$PLACES_FLATGEOBUF_PATH already exists"
 else
     echo "Converting $PLACES_NDJSON_PATH to $PLACES_FLATGEOBUF_PATH"
-    time ogr2ogr -f FlatGeobuf "$PLACES_FLATGEOBUF_PATH" "$PLACES_NDJSON_PATH"
+    ogr2ogr -f FlatGeobuf "$PLACES_FLATGEOBUF_PATH" "$PLACES_NDJSON_PATH"
 fi
 
