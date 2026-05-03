@@ -12,26 +12,9 @@ import re
 
 print("GDAL driver imported")
 
-def _safe_layer_name(path):
+def _safe_layer_name(path:str):
     stem = os.path.splitext(os.path.basename(path))[0]
     return re.sub(r"[^A-Za-z0-9_]", "_", stem) or "wikidata"
-
-
-def _looks_like_wikidata(first_bytes):
-    if not first_bytes:
-        return None
-    text = first_bytes.decode("utf-8", errors="replace")
-    nl = text.find("\n")
-    if nl != -1:
-        text = text[:nl]
-    text = text.lstrip()
-    if not text.startswith("{"):
-        return None if text.startswith("[") else False
-    has_item = '"type":"item"' in text or '"type": "item"' in text
-    has_qid = '"id":"Q' in text or '"id": "Q' in text
-    if has_item and has_qid:
-        return True
-    return None
 
 
 def _read_lang(open_options):
@@ -47,7 +30,7 @@ def _read_lang(open_options):
 
 
 class Layer(BaseLayer):
-    def __init__(self, path, extra_lang):
+    def __init__(self, path:str, extra_lang):
         self._path = path
         self._extra_lang = extra_lang
         self.name = _safe_layer_name(path)
@@ -121,13 +104,30 @@ class Dataset(BaseDataset):
 
 
 class Driver(BaseDriver):
-    def identify(self, filename, first_bytes, open_flags, open_options=None):
-        verdict = _looks_like_wikidata(first_bytes)
-        if verdict is True:
-            return True
-        if verdict is None:
+    def identify(self, filename:str, first_bytes:bytes, open_flags, open_options=None):
+        if not filename.endswith("json"):
+            print(f"Bad extension, file is not wikidata NDJSON: {filename}")
+            return False
+        
+        if not first_bytes:
+            print(f"first_bytes empty, can't determine whether it's wikidata NDJSON: {filename}")
             return -1
-        return False
+        
+        text = first_bytes.decode("utf-8", errors="replace").strip("\n").strip()
+        if not text.startswith("["):
+            print(f"File is not a JSON array, can't be wikidata NDJSON: {filename}")
+            return False
+        
+        if not '"type":"item"' in text and not '"type": "item"' in text:
+            print(f"File doesn't include type:item, can't be wikidata NDJSON: {filename}")
+            return False
+        
+        if not '"id":"Q' in text and not '"id": "Q' in text:
+            print(f"File doesn't include id:Q, can't be wikidata NDJSON: {filename}")
+            return False
+        
+        print(f"File identified as wikidata NDJSON: {filename}")
+        return True
 
     def open(self, filename, first_bytes, open_flags, open_options=None):
         if open_flags & gdal.OF_UPDATE:
