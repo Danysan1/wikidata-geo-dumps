@@ -4,6 +4,7 @@
     "wikibase-dump-filter": "^6.1.1"
   },
   "scripts": {
-    "start": "serve $TOOL_DATA_DIR/dist"
+    "dev": "serve dist",
+    "start": "cp dist/* $TOOL_DATA_DIR/dist/ && serve $TOOL_DATA_DIR/dist"
   }
 }
