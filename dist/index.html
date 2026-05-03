@@ -1,6 +1,43 @@
 <!DOCTYPE html>
-<html>
-    <body>
-        Hello world!
-    </body>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikidata Geographic Dumps</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        h1 { border-bottom: 1px solid #ccc; padding-bottom: 0.5rem; }
+        code { background: #f4f4f4; padding: 0.1em 0.3em; border-radius: 3px; }
+        ul { line-height: 1.8; }
+    </style>
+</head>
+<body>
+    <h1>Wikidata Geographic Dumps</h1>
+    <p>
+        Pre-filtered geographic extracts from the
+        <a href="https://www.wikidata.org/">Wikidata</a> JSON dump.
+        Each dump contains Wikidata entities that have a coordinate location
+        (<a href="https://www.wikidata.org/wiki/Property:P625">P625</a>)
+        and represent currently existing features.
+    </p>
+
+    <h2>Available dumps</h2>
+    <p><a href="/dumps/">Browse available dump dates →</a></p>
+
+    <h2>File formats</h2>
+    <ul>
+        <li><code>.geojsonl</code> — GeoJSONSeq (RFC 8142, newline-delimited GeoJSON Features)</li>
+        <li><code>.fgb</code> — <a href="https://flatgeobuf.org/">FlatGeobuf</a></li>
+        <li><code>.parquet</code> — <a href="https://geoparquet.org/">GeoParquet</a></li>
+        <li><code>.ndjson</code> — intermediate wikibase-dump-filter NDJSON</li>
+    </ul>
+
+    <h2>Source</h2>
+    <p>
+        Pipeline source:
+        <a href="https://gitlab.wikimedia.org/toolforge-repos/wikidata-geo-dumps">
+            gitlab.wikimedia.org/toolforge-repos/wikidata-geo-dumps
+        </a>
+    </p>
+</body>
 </html>
