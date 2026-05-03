@@ -10,6 +10,7 @@ import json
 import os
 import re
 
+print("GDAL driver imported")
 
 def _safe_layer_name(path):
     stem = os.path.splitext(os.path.basename(path))[0]

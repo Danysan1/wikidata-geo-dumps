@@ -1,9 +1,10 @@
 #!/bin/bash
 
 SCRIPT_DIR_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export GDAL_PYTHON_DRIVER_PATH="$SCRIPT_DIR_PATH"
 export GDAL_DRIVER_PATH="$SCRIPT_DIR_PATH"
 export GDAL_DRIVER_PATH_ALLOWED="$SCRIPT_DIR_PATH"
-#export GDAL_DATA="$(gdal-config --datadir 2>/dev/null || python3 -c 'from osgeo import gdal; print(gdal.GetConfigOption("GDAL_DATA"))')"
+export GDAL_DATA="$(gdal-config --datadir 2>/dev/null || python3 -c 'from osgeo import gdal; print(gdal.GetConfigOption("GDAL_DATA"))')"
 
 SOURCE_DUMP='/public/dumps/public/wikidatawiki/entities/latest-all.json.gz'
 if [ ! -f "$SOURCE_DUMP" ]; then
@@ -50,6 +51,7 @@ if [ -f "$PLACES_GEOJSON_PATH" ]; then
     echo "$PLACES_GEOJSON_PATH already exists"
 elif $TEST_MODE ; then # GeoJSON supported only on small files in test mode
     echo "Converting $PLACES_NDJSON_PATH to $PLACES_GEOJSON_PATH"
+    ogr2pgr --version
     ogr2ogr -f GeoJSON "$PLACES_GEOJSON_PATH" "$PLACES_NDJSON_PATH"
 fi
 
