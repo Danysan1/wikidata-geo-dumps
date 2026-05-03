@@ -6,7 +6,14 @@ export GDAL_PYTHON_DRIVER_PATH="$SCRIPT_DIR_PATH"
 export GDAL_DRIVER_PATH="$SCRIPT_DIR_PATH"
 export GDAL_DRIVER_PATH_ALLOWED="$SCRIPT_DIR_PATH"
 export GDAL_DATA="$(gdal-config --datadir 2>/dev/null || python3 -c 'from osgeo import gdal; print(gdal.GetConfigOption("GDAL_DATA"))')"
-export PYTHONSO="$(python3 -c 'import os, sysconfig; print(os.path.join(sysconfig.get_config_var("LIBDIR"), sysconfig.get_config_var("INSTSONAME")))')"
+PYTHONSO_NAME="$(python3 -c 'import sysconfig; print(sysconfig.get_config_var("INSTSONAME") or "")')"
+PYTHONSO_DIR="$(python3 -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR") or "")')"
+if [ -n "$PYTHONSO_NAME" ] && [ -f "$PYTHONSO_DIR/$PYTHONSO_NAME" ]; then
+    export PYTHONSO="$PYTHONSO_DIR/$PYTHONSO_NAME"
+elif [ -n "$PYTHONSO_NAME" ]; then
+    export PYTHONSO="$PYTHONSO_NAME"
+fi
+echo "Resolved PYTHONSO=$PYTHONSO (sysconfig dir=$PYTHONSO_DIR name=$PYTHONSO_NAME, python3=$(python3 --version 2>&1))"
 #endregion
 
 #region Setup filtering & conversion
