@@ -4,6 +4,6 @@
     "wikibase-dump-filter": "^6.1.1"
   },
   "scripts": {
-    "start": "serve dist"
+    "start": "serve $TOOL_DATA_DIR/dist"
   }
 }
