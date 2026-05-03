@@ -1,12 +1,15 @@
 #!/bin/bash
 
-#region Setup
+#region Setup GDAL to make sure it uses the custom driver in this folder
 SCRIPT_DIR_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export GDAL_PYTHON_DRIVER_PATH="$SCRIPT_DIR_PATH"
 export GDAL_DRIVER_PATH="$SCRIPT_DIR_PATH"
 export GDAL_DRIVER_PATH_ALLOWED="$SCRIPT_DIR_PATH"
 export GDAL_DATA="$(gdal-config --datadir 2>/dev/null || python3 -c 'from osgeo import gdal; print(gdal.GetConfigOption("GDAL_DATA"))')"
+export PYTHONSO="$(python3 -c 'import os, sysconfig; print(os.path.join(sysconfig.get_config_var("LIBDIR"), sysconfig.get_config_var("INSTSONAME")))')"
+#endregion
 
+#region Setup filtering & conversion
 SOURCE_DUMP='/public/dumps/public/wikidatawiki/entities/latest-all.json.gz'
 if [ ! -f "$SOURCE_DUMP" ]; then
     echo "Source dump missing: $SOURCE_DUMP"
