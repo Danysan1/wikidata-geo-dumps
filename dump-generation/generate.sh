@@ -13,7 +13,8 @@ if [ -n "$PYTHONSO_NAME" ] && [ -f "$PYTHONSO_DIR/$PYTHONSO_NAME" ]; then
 elif [ -n "$PYTHONSO_NAME" ]; then
     export PYTHONSO="$PYTHONSO_NAME"
 fi
-echo "Resolved PYTHONSO=$PYTHONSO (sysconfig dir=$PYTHONSO_DIR name=$PYTHONSO_NAME, python3=$(python3 --version 2>&1))"
+export PYTHONHOME="$(python3 -c 'import sys; print(sys.prefix)')"
+echo "Resolved PYTHONSO=$PYTHONSO PYTHONHOME=$PYTHONHOME (sysconfig dir=$PYTHONSO_DIR name=$PYTHONSO_NAME, python3=$(python3 --version 2>&1))"
 #endregion
 
 #region Setup filtering & conversion
