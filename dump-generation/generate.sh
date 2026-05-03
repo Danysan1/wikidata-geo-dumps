@@ -51,7 +51,7 @@ if [ -f "$PLACES_GEOJSON_PATH" ]; then
     echo "$PLACES_GEOJSON_PATH already exists"
 elif $TEST_MODE ; then # GeoJSON supported only on small files in test mode
     echo "Converting $PLACES_NDJSON_PATH to $PLACES_GEOJSON_PATH"
-    ogr2pgr --version
+    ogr2ogr --version
     ogr2ogr -f GeoJSON "$PLACES_GEOJSON_PATH" "$PLACES_NDJSON_PATH"
 fi
 

@@ -1,4 +1,5 @@
 [com.heroku.buildpacks.deb-packages]
 install = [
-    "gdal-bin"
+    "gdal-bin",
+    "python3-full"
 ]
