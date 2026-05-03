@@ -44,7 +44,7 @@ if [ -f "$PLACES_NDJSON_PATH" ]; then
     echo "$PLACES_NDJSON_PATH already exists"
 elif $TEST_MODE ; then
     echo "Filtering $PLACES_NDJSON_PATH from only the first 10'000 lines from $SOURCE_DUMP"
-    time cat $SOURCE_DUMP | gzip -d | head -10000 | cat - <(echo ']') | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" > "$PLACES_NDJSON_PATH"
+    time cat $SOURCE_DUMP | gzip -d | head -100000 | cat - <(echo ']') | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" > "$PLACES_NDJSON_PATH"
 else
     echo "Filtering $PLACES_NDJSON_PATH from $SOURCE_DUMP"
     exit 1 #TODO delete when implementation complete
