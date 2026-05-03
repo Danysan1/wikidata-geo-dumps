@@ -14,15 +14,16 @@ The repo has three loosely coupled pieces glued together by the Toolforge buildp
 
 - **Dump generation pipeline** — `dump-generation/generate.sh` is invoked as a daily Toolforge job (see `toolforge/jobs.yaml`). It:
   1. Reads `/public/dumps/public/wikidatawiki/entities/latest-all.json.gz` (Toolforge's NFS-mounted Wikimedia dump path).
-  2. Greps `P625":` and pipes through `wikibase-dump-filter` (npm dep) with `--simplify --omit aliases --claim 'P625&~P585&~P376&~P580&~P571&~P1619&~P582&~P576&~P3999'`. The claim filter requires P625 (coordinates) present and excludes items with P585/P376/start/end-date qualifiers — these rules are still being tightened (see `#TODO` lines in `generate.sh`).
-  3. Output `places.ndjson` is converted to `.fgb` and `.parquet` via `ogr2ogr`. GeoJSON is only produced in `--test` mode because the file is too large in production.
-  4. Output goes to `$TOOL_DATA_DIR/dist/dumps/<dump-date>/` (or `<dump-date>-test`).
+  2. Greps `P625":` and pipes through `wikibase-dump-filter` (npm dep) with `--simplify --omit aliases --claim 'P625&~P585&~P376&~P580&~P571&~P1619&~P582&~P576&~P3999'` to produce `places.ndjson`. The claim filter requires P625 (coordinates) present and excludes items with P585/P376/start/end-date qualifiers — these rules are still being tightened (see `#TODO` lines in `generate.sh`).
+  3. Pre-converts the wikibase-shaped NDJSON to **GeoJSONSeq** (`places.geojsonl`, RFC 8142 newline-delimited GeoJSON Features) with a small `jq` filter that walks `claims.P625` and emits one Feature per coordinate pair. This is the format every downstream step reads.
+  4. Runs `ogr2ogr` against `places.geojsonl` to produce `.fgb` (FlatGeobuf) and `.parquet` (GeoParquet); `.geojson` (a single FeatureCollection) is only produced in `--test` mode because the file is too large in production.
+  5. Output goes to `$TOOL_DATA_DIR/dist/dumps/<dump-date>/` (or `<dump-date>-test`).
 
-- **Custom GDAL driver** — `dump-generation/gdal_Wikidata.py` is a Python plugin driver (`DRIVER_NAME = "Wikidata"`) that teaches OGR how to read wikibase-dump-filter NDJSON: it iterates lines, extracts `P625` coordinate pairs, and emits `POINT` features with id/modified/label_en/description_en (plus optional second-language label/description via `LANG=` open option). This is what lets `ogr2ogr` consume the filter output directly. `generate.sh` wires GDAL to the driver via `GDAL_PYTHON_DRIVER_PATH`, `GDAL_DRIVER_PATH`, and `GDAL_DRIVER_PATH_ALLOWED`, and exports `PYTHONSO`/`PYTHONHOME` so GDAL's embedded interpreter can find libpython.
+- **Dormant custom GDAL driver** — `dump-generation/gdal_Wikidata.py` is a Python plugin driver (`DRIVER_NAME = "Wikidata"`) that taught OGR to read wikibase-dump-filter NDJSON directly, emitting `POINT` features with id/modified/label_en/description_en (plus optional second-language label/description via `LANG=` open option). It is **no longer wired into the pipeline** — Toolforge's buildpack environment couldn't reliably bootstrap GDAL's embedded Python interpreter (`ModuleNotFoundError: No module named 'encodings'`), so we replaced this path with the jq pre-conversion above. The file is kept on disk as a reference; re-enabling it would require re-adding `python3-full` / `libpython3-all-dev` to `project.toml` AND restoring the `GDAL_PYTHON_DRIVER_PATH` / `GDAL_DRIVER_PATH` / `PYTHONSO` / `PYTHONHOME` exports in `generate.sh`.
 
 ## Build/runtime environment
 
-Toolforge uses a Heroku-style buildpack. `project.toml` declares apt packages `gdal-bin`, `python3-full`, `libpython3-all-dev`; these are required at runtime for `ogr2ogr` and the embedded Python driver. There is no node-side build step — `dist/` is committed as-is.
+Toolforge uses a Heroku-style buildpack. `project.toml` declares apt packages `gdal-bin` (provides `ogr2ogr`) and `jq` (the active NDJSON → GeoJSONSeq conversion). There is no node-side build step — `dist/` is committed as-is.
 
 `Procfile` defines two process types: `web` (the static server) and `generate` (the dump pipeline). Toolforge's `jobs.yaml` references `command: generate` (and `generate --test`), which invokes the Procfile entry.
 
@@ -50,5 +51,5 @@ toolforge jobs load toolforge/jobs.yaml
 - This repo is located in Wikimedia Foundation GitLab instance at `https://gitlab.wikimedia.org/toolforge-repos/wikidata-geo-dumps.git`. Pushing to git is not enough to deploy, it's necessary to build the project and update the server as described above.
 - Production filtering inside `generate.sh` is currently guarded by `exit 1` (line ~61) until the filter rules are finalized. Only `--test` mode actually runs end-to-end today.
 - The pipeline is heavily idempotent: each step skips if its output file already exists. To force regeneration, delete the corresponding file under `$TOOL_DATA_DIR/dist/dumps/<date>/`.
-- The custom GDAL driver only activates if the input filename ends in `.json`/`.ndjson` AND the first bytes start with `[` AND contain `"type":"item"` and `"id":"Q`. Changing the filter output shape (e.g. dropping the leading `[`) will silently break driver identification.
+- The jq filter assumes wikibase-dump-filter `--simplify` shape: `claims.P625` is an array of `[lat, lon]` numeric pairs. GeoJSON expects `[lon, lat]`, so the filter swaps them. Changing `--simplify` or pulling a non-simplified P625 will silently produce empty output (the `select(...)` guards drop everything).
 - `dump-generation/places.json` and `dump-generation/x.geojson` in the working tree are local scratch files — they are not consumed by the pipeline.

@@ -1,6 +1,5 @@
 [com.heroku.buildpacks.deb-packages]
 install = [
     "gdal-bin",
-    "python3-full",
-    "libpython3-all-dev"
+    "jq"
 ]

@@ -1,21 +1,9 @@
 #!/bin/bash
 
-#region Setup GDAL to make sure it uses the custom driver in this folder
-SCRIPT_DIR_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-export GDAL_PYTHON_DRIVER_PATH="$SCRIPT_DIR_PATH"
-export GDAL_DRIVER_PATH="$SCRIPT_DIR_PATH"
-export GDAL_DRIVER_PATH_ALLOWED="$SCRIPT_DIR_PATH"
-export GDAL_DATA="$(gdal-config --datadir 2>/dev/null || python3 -c 'from osgeo import gdal; print(gdal.GetConfigOption("GDAL_DATA"))')"
-PYTHONSO_NAME="$(python3 -c 'import sysconfig; print(sysconfig.get_config_var("INSTSONAME") or "")')"
-PYTHONSO_DIR="$(python3 -c 'import sysconfig; print(sysconfig.get_config_var("LIBDIR") or "")')"
-if [ -n "$PYTHONSO_NAME" ] && [ -f "$PYTHONSO_DIR/$PYTHONSO_NAME" ]; then
-    export PYTHONSO="$PYTHONSO_DIR/$PYTHONSO_NAME"
-elif [ -n "$PYTHONSO_NAME" ]; then
-    export PYTHONSO="$PYTHONSO_NAME"
-fi
-export PYTHONHOME="$(python3 -c 'import sys; print(sys.prefix)')"
-echo "Resolved PYTHONSO=$PYTHONSO PYTHONHOME=$PYTHONHOME (sysconfig dir=$PYTHONSO_DIR name=$PYTHONSO_NAME, python3=$(python3 --version 2>&1))"
-#endregion
+# NOTE: dump-generation/gdal_Wikidata.py (the GDAL Python plugin driver) is no
+# longer wired into this pipeline; we now pre-convert the wikibase-dump-filter
+# NDJSON to GeoJSONSeq with jq and let ogr2ogr's native C++ drivers do the rest.
+# The .py file is kept on disk as a fallback in case we ever need to revisit.
 
 #region Setup filtering & conversion
 SOURCE_DUMP='/public/dumps/public/wikidatawiki/entities/latest-all.json.gz'
@@ -35,6 +23,7 @@ else
     OUT_DUMPS_DIR="$TOOL_DATA_DIR/dist/dumps/$AVAILABLE_DUMP_DATE"
 fi
 PLACES_NDJSON_PATH="$OUT_DUMPS_DIR/places.ndjson"
+PLACES_GEOJSONSEQ_PATH="$OUT_DUMPS_DIR/places.geojsonl"
 PLACES_GEOJSON_PATH="$OUT_DUMPS_DIR/places.geojson"
 PLACES_FLATGEOBUF_PATH="$OUT_DUMPS_DIR/places.fgb"
 PLACES_GEOPARQUET_PATH="$OUT_DUMPS_DIR/places.parquet"
@@ -61,15 +50,52 @@ else
     exit 1 #TODO delete when implementation complete
     #time cat $SOURCE_DUMP | gzip -d | grep 'P625":' | wikibase-dump-filter "${curl_options[@]}" > "$PLACES_NDJSON_PATH"
 fi
-#endregion 
+#endregion
+
+#region Convert wikibase NDJSON -> GeoJSONSeq with jq
+# This intermediate format is what every downstream ogr2ogr step reads.
+# Each output line is a single GeoJSON Feature (RFC 8142 newline-delimited).
+# The filter mirrors the logic of the dormant gdal_Wikidata.py driver:
+#   - skip lines that are not JSON objects
+#   - emit one Feature per [lat, lon] pair in claims.P625
+#   - reject pairs that are not [number, number] (also rejects booleans)
+#   - GeoJSON expects [lon, lat] order, so we swap.
+if [ -f "$PLACES_GEOJSONSEQ_PATH" ]; then
+    echo "$PLACES_GEOJSONSEQ_PATH already exists"
+else
+    echo "Converting $PLACES_NDJSON_PATH to $PLACES_GEOJSONSEQ_PATH (GeoJSONSeq)"
+    time jq --raw-input -c '
+        try fromjson catch empty
+        | select(type == "object")
+        | . as $item
+        | (.claims.P625 // [])[]
+        | select(type == "array" and length == 2
+                 and (.[0] | type) == "number"
+                 and (.[1] | type) == "number")
+        | {
+            type: "Feature",
+            properties: {
+              id: $item.id,
+              modified: $item.modified,
+              label_en: $item.labels.en,
+              description_en: $item.descriptions.en
+            },
+            geometry: {
+              type: "Point",
+              coordinates: [.[1], .[0]]
+            }
+          }
+    ' "$PLACES_NDJSON_PATH" > "$PLACES_GEOJSONSEQ_PATH"
+fi
+#endregion
 
 #region Convert to GeoJSON
 if [ -f "$PLACES_GEOJSON_PATH" ]; then
     echo "$PLACES_GEOJSON_PATH already exists"
 elif $TEST_MODE ; then # GeoJSON supported only on small files in test mode
-    echo "Converting $PLACES_NDJSON_PATH to $PLACES_GEOJSON_PATH"
+    echo "Converting $PLACES_GEOJSONSEQ_PATH to $PLACES_GEOJSON_PATH"
     ogr2ogr --version
-    time ogr2ogr -f GeoJSON "$PLACES_GEOJSON_PATH" "$PLACES_NDJSON_PATH"
+    time ogr2ogr -f GeoJSON "$PLACES_GEOJSON_PATH" "$PLACES_GEOJSONSEQ_PATH"
 fi
 #endregion
 
@@ -77,8 +103,8 @@ fi
 if [ -f "$PLACES_FLATGEOBUF_PATH" ]; then
     echo "$PLACES_FLATGEOBUF_PATH already exists"
 else
-    echo "Converting $PLACES_NDJSON_PATH to $PLACES_FLATGEOBUF_PATH"
-    time ogr2ogr -f FlatGeobuf "$PLACES_FLATGEOBUF_PATH" "$PLACES_NDJSON_PATH"
+    echo "Converting $PLACES_GEOJSONSEQ_PATH to $PLACES_FLATGEOBUF_PATH"
+    time ogr2ogr -f FlatGeobuf "$PLACES_FLATGEOBUF_PATH" "$PLACES_GEOJSONSEQ_PATH"
 fi
 #endregion
 
@@ -86,7 +112,7 @@ fi
 if [ -f "$PLACES_GEOPARQUET_PATH" ]; then
     echo "$PLACES_GEOPARQUET_PATH already exists"
 else
-    echo "Converting $PLACES_NDJSON_PATH to $PLACES_GEOPARQUET_PATH"
-    time ogr2ogr -f Parquet "$PLACES_GEOPARQUET_PATH" "$PLACES_NDJSON_PATH"
+    echo "Converting $PLACES_GEOJSONSEQ_PATH to $PLACES_GEOPARQUET_PATH"
+    time ogr2ogr -f Parquet "$PLACES_GEOPARQUET_PATH" "$PLACES_GEOJSONSEQ_PATH"
 fi
 #endregion
