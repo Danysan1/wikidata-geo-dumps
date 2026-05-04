@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# NOTE: dump-generation/gdal_Wikidata.py (the GDAL Python plugin driver) is no
-# longer wired into this pipeline; we now pre-convert the wikibase-dump-filter
-# NDJSON to GeoJSONSeq with jq and let ogr2ogr's native C++ drivers do the rest.
-# The .py file is kept on disk as a fallback in case we ever need to revisit.
-
 #region Setup filtering & conversion
 SOURCE_DUMP='/public/dumps/public/wikidatawiki/entities/latest-all.json.gz'
 if [ ! -f "$SOURCE_DUMP" ]; then
@@ -22,14 +17,13 @@ else
     TEST_MODE=false
     OUT_DUMPS_DIR="$TOOL_DATA_DIR/dist/dumps/$AVAILABLE_DUMP_DATE"
 fi
-PLACES_NDJSON_PATH="$OUT_DUMPS_DIR/places.ndjson"
 PLACES_GEOJSONSEQ_PATH="$OUT_DUMPS_DIR/places.geojsonl"
 PLACES_GEOJSON_PATH="$OUT_DUMPS_DIR/places.geojson"
 PLACES_FLATGEOBUF_PATH="$OUT_DUMPS_DIR/places.fgb"
 PLACES_GEOPARQUET_PATH="$OUT_DUMPS_DIR/places.parquet"
 #endregion
 
-#region Filtering
+#region Filter and convert to GeoJSONSeq
 declare -a filter_options
 filter_options+=(--simplify --omit aliases --claim 'P625&~P585&~P376&~P580&~P571&~P1619&~P582&~P576&~P3999')
 # P625 (coordinates) must be present
@@ -39,53 +33,45 @@ filter_options+=(--simplify --omit aliases --claim 'P625&~P585&~P376&~P580&~P571
 #TODO Allow P580, P571, P1619 (start dates) with values in the past
 #TODO Allow P582, P576, P3999 (end dates) with values in the future
 
-mkdir -p "$OUT_DUMPS_DIR"
-if [ -f "$PLACES_NDJSON_PATH" ]; then
-    echo "$PLACES_NDJSON_PATH already exists"
-elif $TEST_MODE ; then
-    echo "Filtering $PLACES_NDJSON_PATH from only the first 1M lines from $SOURCE_DUMP"
-    cat $SOURCE_DUMP | gzip -d | head -1000000 | cat - <(echo ']') | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" > "$PLACES_NDJSON_PATH"
-else
-    echo "Filtering $PLACES_NDJSON_PATH from $SOURCE_DUMP"
-    exit 1 #TODO delete when implementation complete
-    #cat $SOURCE_DUMP | gzip -d | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" > "$PLACES_NDJSON_PATH"
-fi
-#endregion
-
-#region Convert wikibase NDJSON -> GeoJSONSeq with jq
-# This intermediate format is what every downstream ogr2ogr step reads.
 # Each output line is a single GeoJSON Feature (RFC 8142 newline-delimited).
-# The filter mirrors the logic of the dormant gdal_Wikidata.py driver:
-#   - skip lines that are not JSON objects
-#   - emit one Feature per [lat, lon] pair in claims.P625
-#   - reject pairs that are not [number, number] (also rejects booleans)
+# The filter:
+#   - skips lines that are not JSON objects
+#   - emits one Feature per [lat, lon] pair in claims.P625
+#   - rejects pairs that are not [number, number] (also rejects booleans)
 #   - GeoJSON expects [lon, lat] order, so we swap.
+JQ_FILTER='
+    try fromjson catch empty
+    | select(type == "object")
+    | . as $item
+    | (.claims.P625 // [])[]
+    | select(type == "array" and length == 2
+                and (.[0] | type) == "number"
+                and (.[1] | type) == "number")
+    | {
+        type: "Feature",
+        properties: {
+            id: $item.id,
+            modified: $item.modified,
+            label_en: $item.labels.en,
+            description_en: $item.descriptions.en
+        },
+        geometry: {
+            type: "Point",
+            coordinates: [.[1], .[0]]
+        }
+        }
+'
+
+mkdir -p "$OUT_DUMPS_DIR"
 if [ -f "$PLACES_GEOJSONSEQ_PATH" ]; then
     echo "$PLACES_GEOJSONSEQ_PATH already exists"
+elif $TEST_MODE ; then
+    echo "Filtering $PLACES_GEOJSONSEQ_PATH from only the first 1M lines from $SOURCE_DUMP"
+    cat $SOURCE_DUMP | gzip -d | head -1000000 | cat - <(echo ']') | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" | jq --raw-input -c "$JQ_FILTER" > "$PLACES_GEOJSONSEQ_PATH"
 else
-    echo "Converting $PLACES_NDJSON_PATH to $PLACES_GEOJSONSEQ_PATH (GeoJSONSeq)"
-    time jq --raw-input -c '
-        try fromjson catch empty
-        | select(type == "object")
-        | . as $item
-        | (.claims.P625 // [])[]
-        | select(type == "array" and length == 2
-                 and (.[0] | type) == "number"
-                 and (.[1] | type) == "number")
-        | {
-            type: "Feature",
-            properties: {
-              id: $item.id,
-              modified: $item.modified,
-              label_en: $item.labels.en,
-              description_en: $item.descriptions.en
-            },
-            geometry: {
-              type: "Point",
-              coordinates: [.[1], .[0]]
-            }
-          }
-    ' "$PLACES_NDJSON_PATH" > "$PLACES_GEOJSONSEQ_PATH"
+    echo "Filtering $PLACES_GEOJSONSEQ_PATH from $SOURCE_DUMP"
+    exit 1 #TODO delete when implementation complete
+    #cat $SOURCE_DUMP | gzip -d | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" | jq --raw-input -c "$JQ_FILTER" > "$PLACES_GEOJSONSEQ_PATH"
 fi
 #endregion
 
