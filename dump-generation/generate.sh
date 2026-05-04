@@ -18,12 +18,16 @@ else
     OUT_DUMPS_DIR="$TOOL_DATA_DIR/dist/dumps/$AVAILABLE_DUMP_DATE"
 fi
 PLACES_GEOJSONSEQ_PATH="$OUT_DUMPS_DIR/places.geojsonl"
-PLACES_GEOJSON_PATH="$OUT_DUMPS_DIR/places.geojson"
 PLACES_FLATGEOBUF_PATH="$OUT_DUMPS_DIR/places.fgb"
 PLACES_GEOPARQUET_PATH="$OUT_DUMPS_DIR/places.parquet"
+
+TMP_DIR=$(mktemp -d)
 #endregion
 
 #region Filter and convert to GeoJSONSeq
+COMPLEX_GREP_FILTER='P585":|P376":|P580":|P571":|P1619":|P582":|P576":|P3999":'
+COMPLEX_ITEMS_PATH="$TMP_DIR/complex.ndjson"
+
 declare -a filter_options
 filter_options+=(--simplify --omit aliases --claim 'P625&~P585&~P376&~P580&~P571&~P1619&~P582&~P576&~P3999')
 # P625 (coordinates) must be present
@@ -65,13 +69,10 @@ JQ_FILTER='
 mkdir -p "$OUT_DUMPS_DIR"
 if [ -f "$PLACES_GEOJSONSEQ_PATH" ]; then
     echo "$PLACES_GEOJSONSEQ_PATH already exists"
-elif $TEST_MODE ; then
-    echo "Filtering $PLACES_GEOJSONSEQ_PATH from only the first 1M lines from $SOURCE_DUMP"
-    cat $SOURCE_DUMP | gzip -d | head -1000000 | cat - <(echo ']') | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" | jq --raw-input -c "$JQ_FILTER" > "$PLACES_GEOJSONSEQ_PATH"
 else
     echo "Filtering $PLACES_GEOJSONSEQ_PATH from $SOURCE_DUMP"
-    exit 1 #TODO delete when implementation complete
-    #cat $SOURCE_DUMP | gzip -d | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" | jq --raw-input -c "$JQ_FILTER" > "$PLACES_GEOJSONSEQ_PATH"
+    time cat "$SOURCE_DUMP" | gzip -d | ($TEST_MODE && head -1000000 || cat -) | grep 'P625":' | tee >(grep -E $COMPLEX_GREP_FILTER > "$COMPLEX_ITEMS_PATH") | grep -Ev $COMPLEX_GREP_FILTER | jq --raw-input -c "$JQ_FILTER" > "$PLACES_GEOJSONSEQ_PATH"
+    time cat <(echo '[') "$COMPLEX_ITEMS_PATH" <(echo ']') | wikibase-dump-filter "${filter_options[@]}" | jq --raw-input -c "$JQ_FILTER" >> "$PLACES_GEOJSONSEQ_PATH"
 fi
 #endregion
 
@@ -96,3 +97,5 @@ gpd.read_file("$PLACES_FLATGEOBUF_PATH", driver="FlatGeobuf").to_parquet("$PLACE
 EOF
 fi
 #endregion
+
+echo 'Filtering & conversion completed'

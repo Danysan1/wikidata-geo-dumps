@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 toolforge build start https://gitlab.wikimedia.org/toolforge-repos/wikidata-geo-dumps.git
 #toolforge build show
