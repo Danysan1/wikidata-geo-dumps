@@ -102,11 +102,11 @@ fi
 if [ -f "$PLACES_GEOPARQUET_PATH" ]; then
     echo "$PLACES_GEOPARQUET_PATH already exists"
 else
-    echo "Converting $PLACES_GEOJSONSEQ_PATH to $PLACES_GEOPARQUET_PATH"
-    #time ogr2ogr -f Parquet "$PLACES_GEOPARQUET_PATH" "$PLACES_GEOJSONSEQ_PATH"
+    echo "Converting $PLACES_FLATGEOBUF_PATH to $PLACES_GEOPARQUET_PATH"
+    #time ogr2ogr -f Parquet "$PLACES_GEOPARQUET_PATH" "$PLACES_FLATGEOBUF_PATH"
     time python3 - <<EOF
 import geopandas as gpd
-gpd.read_file("$PLACES_GEOJSONSEQ_PATH", driver="GeoJSONSeq").to_parquet("$PLACES_GEOPARQUET_PATH")
+gpd.read_file("$PLACES_FLATGEOBUF_PATH", driver="FlatGeobuf").to_parquet("$PLACES_GEOPARQUET_PATH")
 EOF
 fi
 #endregion
