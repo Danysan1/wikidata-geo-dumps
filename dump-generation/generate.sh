@@ -29,7 +29,7 @@ COMPLEX_GREP_FILTER='P585":|P376":|P580":|P571":|P1619":|P582":|P576":|P3999":'
 COMPLEX_ITEMS_PATH="$TMP_DIR/complex.ndjson"
 
 declare -a filter_options
-filter_options+=(--simplify --omit aliases --claim 'P625&~P585&~P376&~P580&~P571&~P1619&~P582&~P576&~P3999')
+filter_options+=(--omit aliases --claim 'P625&~P585&~P376&~P580&~P571&~P1619&~P582&~P576&~P3999')
 # P625 (coordinates) must be present
 # P585 (date) or P376 (located on astronomical body) must be absent
 #TODO Allow P3896 (geoshape) alternatively to P625
@@ -40,30 +40,33 @@ filter_options+=(--simplify --omit aliases --claim 'P625&~P585&~P376&~P580&~P571
 # Each output line is a single GeoJSON Feature (RFC 8142 newline-delimited).
 # The filter:
 #   - skips lines that are not JSON objects
-#   - emits one Feature per [lat, lon] pair in claims.P625
-#   - rejects pairs that are not [number, number] (also rejects booleans)
-#   - GeoJSON expects [lon, lat] order, so we swap.
+#   - emits one Feature per P625 statement with a valid globecoordinate value
+#   - rejects statements where latitude/longitude are not numbers
 JQ_FILTER='
     try fromjson catch empty
     | select(type == "object")
     | . as $item
     | (.claims.P625 // [])[]
-    | select(type == "array" and length == 2
-                and (.[0] | type) == "number"
-                and (.[1] | type) == "number")
+    | select(
+        .mainsnak.snaktype == "value"
+        and (.mainsnak.datavalue.value | type) == "object"
+        and (.mainsnak.datavalue.value.longitude | type) == "number"
+        and (.mainsnak.datavalue.value.latitude | type) == "number"
+      )
+    | .mainsnak.datavalue.value as $coord
     | {
         type: "Feature",
         properties: {
             id: $item.id,
             modified: $item.modified,
-            label_en: $item.labels.en,
-            description_en: $item.descriptions.en
+            label_en: $item.labels.en.value,
+            description_en: $item.descriptions.en.value
         },
         geometry: {
             type: "Point",
-            coordinates: [.[1], .[0]]
+            coordinates: [$coord.longitude, $coord.latitude]
         }
-        }
+    }
 '
 
 mkdir -p "$OUT_DUMPS_DIR"
