@@ -43,12 +43,12 @@ mkdir -p "$OUT_DUMPS_DIR"
 if [ -f "$PLACES_NDJSON_PATH" ]; then
     echo "$PLACES_NDJSON_PATH already exists"
 elif $TEST_MODE ; then
-    echo "Filtering $PLACES_NDJSON_PATH from only the first 100'000 lines from $SOURCE_DUMP"
-    time cat $SOURCE_DUMP | gzip -d | head -100000 | cat - <(echo ']') | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" > "$PLACES_NDJSON_PATH"
+    echo "Filtering $PLACES_NDJSON_PATH from only the first 1M lines from $SOURCE_DUMP"
+    cat $SOURCE_DUMP | gzip -d | head -1000000 | cat - <(echo ']') | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" > "$PLACES_NDJSON_PATH"
 else
     echo "Filtering $PLACES_NDJSON_PATH from $SOURCE_DUMP"
     exit 1 #TODO delete when implementation complete
-    #time cat $SOURCE_DUMP | gzip -d | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" > "$PLACES_NDJSON_PATH"
+    #cat $SOURCE_DUMP | gzip -d | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" > "$PLACES_NDJSON_PATH"
 fi
 #endregion
 

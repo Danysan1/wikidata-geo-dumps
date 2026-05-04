@@ -34,7 +34,7 @@ There is no node-side build step — `dist/` is committed as-is.
 # Local: serve the dist folder
 npm start
 
-# Run the pipeline in test mode (takes only the first 100k lines from the source dump)
+# Run the pipeline in test mode (uses only a subset of the source dump)
 ./dump-generation/generate.sh --test
 
 # Toolforge: rebuild image and restart the web service after pushing to GitLab
