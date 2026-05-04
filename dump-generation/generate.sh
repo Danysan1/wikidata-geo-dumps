@@ -58,9 +58,10 @@ JQ_FILTER='
         type: "Feature",
         properties: {
             id: $item.id,
-            modified: $item.modified,
-            label_en: $item.labels.en.value,
-            description_en: $item.descriptions.en.value
+            "name:en": $item.labels.en.value,
+            "description:en": $item.descriptions.en.value,
+            "name:it": $item.labels.it.value,
+            "description:it": $item.descriptions.it.value
         },
         geometry: {
             type: "Point",
