@@ -46,6 +46,30 @@ npm start
 toolforge jobs load toolforge/jobs.yaml
 ```
 
+## Web interface — design system & accessibility
+
+`dist/index.html` is the landing page. All changes to it must follow:
+
+### Wikimedia Codex design system
+- Load Codex CSS from CDN: `https://cdn.jsdelivr.net/npm/@wikimedia/codex/dist/codex.style.css`
+  - Pin to a specific version in production (replace bare package name with `@wikimedia/codex@<version>`).
+  - Documentation: https://doc.wikimedia.org/codex/main/
+- **Codex CSS does not style plain HTML elements** — it only styles `.cdx-*` component classes.
+  Apply design tokens to semantic HTML elements manually via CSS custom properties (see the `<style>` block in `index.html`).
+- Use `.cdx-button`, `.cdx-button--fake-button`, `.cdx-button--weight-*`, `.cdx-button--action-*` etc. when a link should look like a button.
+- Use Codex CSS custom properties (`--color-*`, `--spacing-*`, `--font-size-*`, `--border-*`, etc.) for all colours, spacing, and typography values. Always include a hardcoded fallback: `var(--color-base, #202122)`.
+- Do not introduce custom colour values that diverge from the Codex palette; this ensures consistency with other Wikimedia tools and correct dark-mode behaviour when Codex adds it.
+
+### WCAG 2.1 Level AA accessibility
+- Include a **skip navigation link** (`<a class="wgd-skip-link" href="#main-content">`) as the first focusable element so keyboard users can jump past repeated navigation.
+- Use semantic landmark elements: `<header>`, `<main id="main-content">`, `<footer>`, `<nav aria-label="…">`.
+- Maintain a logical heading hierarchy (one `<h1>` per page, then `<h2>`, etc.).
+- All links must have descriptive text — never use bare arrows ("→") or "click here" as the link label.
+- All `<img>` and icon elements must have `alt` text or `aria-hidden="true"` if decorative.
+- Colour contrast: use only Codex progressive/base/subtle colours, which are pre-validated for 4.5 : 1 contrast on white.
+- Focus indicators must remain visible — do not use `outline: none` without an equivalent visible replacement.
+- Use relative units (`rem`/`em`) for font sizes and spacing so that browser zoom works correctly.
+
 ## Important gotchas
 
 - This repo is located in Wikimedia Foundation GitLab instance at `https://gitlab.wikimedia.org/toolforge-repos/wikidata-geo-dumps.git`. Pushing to git is not enough to deploy, it's necessary to build the project and update the server as described above.
