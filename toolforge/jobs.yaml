@@ -15,4 +15,3 @@
   command: generate --test
   mount: all
   emails: onfailure
-  timeout: 600
