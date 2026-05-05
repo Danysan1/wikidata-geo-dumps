@@ -25,6 +25,7 @@ TMP_DIR=$(mktemp -d)
 #endregion
 
 #region Filter and convert to GeoJSONSeq
+SPLIT_COMPLEX_ITEMS=true # Using the same filters and 1M source dump lines, splitting complex items reduces the filtering time from 9m37s to 7m9s
 COMPLEX_GREP_FILTER='P585":|P376":|P580":|P571":|P1619":|P582":|P576":|P3999":'
 COMPLEX_ITEMS_PATH="$TMP_DIR/complex.ndjson"
 
@@ -75,9 +76,12 @@ if [ -f "$PLACES_GEOJSONSEQ_PATH" ]; then
     echo "$PLACES_GEOJSONSEQ_PATH already exists"
 else
     echo "Filtering $PLACES_GEOJSONSEQ_PATH from $SOURCE_DUMP"
-    time gzip -d < "$SOURCE_DUMP" | ($TEST_MODE && head -1000000 || cat -) | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" | jq --raw-input -c "$JQ_FILTER" >> "$PLACES_GEOJSONSEQ_PATH"
-    # time gzip -d < "$SOURCE_DUMP" | ($TEST_MODE && head -1000000 || cat -) | grep 'P625":' | tee >(grep -E $COMPLEX_GREP_FILTER > "$COMPLEX_ITEMS_PATH") | grep -Ev $COMPLEX_GREP_FILTER | jq --raw-input -c "$JQ_FILTER" > "$PLACES_GEOJSONSEQ_PATH"
-    # time wikibase-dump-filter "${filter_options[@]}" < "$COMPLEX_ITEMS_PATH" | jq --raw-input -c "$JQ_FILTER" >> "$PLACES_GEOJSONSEQ_PATH"
+    if $SPLIT_COMPLEX_ITEMS ; then
+        time gzip -d < "$SOURCE_DUMP" | ($TEST_MODE && head -1000000 || cat -) | grep 'P625":' | tee >(grep -E $COMPLEX_GREP_FILTER > "$COMPLEX_ITEMS_PATH") | grep -Ev $COMPLEX_GREP_FILTER | jq --raw-input -c "$JQ_FILTER" > "$PLACES_GEOJSONSEQ_PATH"
+        time wikibase-dump-filter "${filter_options[@]}" < "$COMPLEX_ITEMS_PATH" | jq --raw-input -c "$JQ_FILTER" >> "$PLACES_GEOJSONSEQ_PATH"
+    else
+        time gzip -d < "$SOURCE_DUMP" | ($TEST_MODE && head -1000000 || cat -) | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" | jq --raw-input -c "$JQ_FILTER" >> "$PLACES_GEOJSONSEQ_PATH"
+    fi
 fi
 #endregion
 
