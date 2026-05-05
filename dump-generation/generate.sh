@@ -28,8 +28,9 @@ TMP_DIR=$(mktemp -d)
 COMPLEX_GREP_FILTER='P585":|P376":|P580":|P571":|P1619":|P582":|P576":|P3999":'
 COMPLEX_ITEMS_PATH="$TMP_DIR/complex.ndjson"
 
+# Options documentation in https://codeberg.org/maxlath/wikibase-dump-filter/src/branch/main/docs/cli.md
 declare -a filter_options
-filter_options+=(--omit aliases --claim 'P625&~P585&~P376&~P580&~P571&~P1619&~P582&~P576&~P3999')
+filter_options+=(--omit aliases,descriptions,sitelinks --languages mul,en --claim 'P625&~P585&~P376&~P580&~P571&~P1619&~P582&~P576&~P3999')
 # P625 (coordinates) must be present
 # P585 (date) or P376 (located on astronomical body) must be absent
 #TODO Allow P3896 (geoshape) alternatively to P625
@@ -59,8 +60,8 @@ JQ_FILTER='
         type: "Feature",
         properties: {
             id: $item.id,
+            "name": $item.labels.mul.value,
             "name:en": $item.labels.en.value,
-            "description:en": $item.descriptions.en.value,
         },
         geometry: {
             type: "Point",
@@ -74,9 +75,9 @@ if [ -f "$PLACES_GEOJSONSEQ_PATH" ]; then
     echo "$PLACES_GEOJSONSEQ_PATH already exists"
 else
     echo "Filtering $PLACES_GEOJSONSEQ_PATH from $SOURCE_DUMP"
-    # time cat "$SOURCE_DUMP" | gzip -d | ($TEST_MODE && head -1000000 || cat -) | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" | jq --raw-input -c "$JQ_FILTER" >> "$PLACES_GEOJSONSEQ_PATH"
-    time cat "$SOURCE_DUMP" | gzip -d | ($TEST_MODE && head -1000000 || cat -) | grep 'P625":' | tee >(grep -E $COMPLEX_GREP_FILTER > "$COMPLEX_ITEMS_PATH") | grep -Ev $COMPLEX_GREP_FILTER | jq --raw-input -c "$JQ_FILTER" > "$PLACES_GEOJSONSEQ_PATH"
-    time "$COMPLEX_ITEMS_PATH" | wikibase-dump-filter "${filter_options[@]}" | jq --raw-input -c "$JQ_FILTER" >> "$PLACES_GEOJSONSEQ_PATH"
+    # time gzip -d < "$SOURCE_DUMP" | ($TEST_MODE && head -1000000 || cat -) | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" | jq --raw-input -c "$JQ_FILTER" >> "$PLACES_GEOJSONSEQ_PATH"
+    time gzip -d < "$SOURCE_DUMP" | ($TEST_MODE && head -1000000 || cat -) | grep 'P625":' | tee >(grep -E $COMPLEX_GREP_FILTER > "$COMPLEX_ITEMS_PATH") | grep -Ev $COMPLEX_GREP_FILTER | jq --raw-input -c "$JQ_FILTER" > "$PLACES_GEOJSONSEQ_PATH"
+    time wikibase-dump-filter "${filter_options[@]}" < "$COMPLEX_ITEMS_PATH" | jq --raw-input -c "$JQ_FILTER" >> "$PLACES_GEOJSONSEQ_PATH"
 fi
 #endregion
 
