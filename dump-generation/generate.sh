@@ -40,13 +40,14 @@ filter_options+=(--omit aliases --claim 'P625&~P585&~P376&~P580&~P571&~P1619&~P5
 # Each output line is a single GeoJSON Feature (RFC 8142 newline-delimited).
 # The filter:
 #   - skips lines that are not JSON objects
-#   - emits one Feature per P625 statement with a valid globecoordinate value
+#   - emits one Feature for the first P625 statement with a valid globecoordinate value
 #   - rejects statements where latitude/longitude are not numbers
 JQ_FILTER='
     try fromjson catch empty
     | select(type == "object")
     | . as $item
-    | (.claims.P625 // [])[]
+    | (.claims.P625 // [])[0]
+    | select(. != null)
     | select(
         .mainsnak.snaktype == "value"
         and (.mainsnak.datavalue.value | type) == "object"
@@ -60,8 +61,6 @@ JQ_FILTER='
             id: $item.id,
             "name:en": $item.labels.en.value,
             "description:en": $item.descriptions.en.value,
-            "name:it": $item.labels.it.value,
-            "description:it": $item.descriptions.it.value
         },
         geometry: {
             type: "Point",
