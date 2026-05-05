@@ -74,9 +74,9 @@ if [ -f "$PLACES_GEOJSONSEQ_PATH" ]; then
     echo "$PLACES_GEOJSONSEQ_PATH already exists"
 else
     echo "Filtering $PLACES_GEOJSONSEQ_PATH from $SOURCE_DUMP"
-    time cat "$SOURCE_DUMP" | gzip -d | ($TEST_MODE && head -1000000 || cat -) | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" | jq --raw-input -c "$JQ_FILTER" >> "$PLACES_GEOJSONSEQ_PATH"
-    # time cat "$SOURCE_DUMP" | gzip -d | ($TEST_MODE && head -1000000 || cat -) | grep 'P625":' | tee >(grep -E $COMPLEX_GREP_FILTER > "$COMPLEX_ITEMS_PATH") | grep -Ev $COMPLEX_GREP_FILTER | jq --raw-input -c "$JQ_FILTER" > "$PLACES_GEOJSONSEQ_PATH"
-    # time "$COMPLEX_ITEMS_PATH" | wikibase-dump-filter "${filter_options[@]}" | jq --raw-input -c "$JQ_FILTER" >> "$PLACES_GEOJSONSEQ_PATH"
+    # time cat "$SOURCE_DUMP" | gzip -d | ($TEST_MODE && head -1000000 || cat -) | grep 'P625":' | wikibase-dump-filter "${filter_options[@]}" | jq --raw-input -c "$JQ_FILTER" >> "$PLACES_GEOJSONSEQ_PATH"
+    time cat "$SOURCE_DUMP" | gzip -d | ($TEST_MODE && head -1000000 || cat -) | grep 'P625":' | tee >(grep -E $COMPLEX_GREP_FILTER > "$COMPLEX_ITEMS_PATH") | grep -Ev $COMPLEX_GREP_FILTER | jq --raw-input -c "$JQ_FILTER" > "$PLACES_GEOJSONSEQ_PATH"
+    time "$COMPLEX_ITEMS_PATH" | wikibase-dump-filter "${filter_options[@]}" | jq --raw-input -c "$JQ_FILTER" >> "$PLACES_GEOJSONSEQ_PATH"
 fi
 #endregion
 

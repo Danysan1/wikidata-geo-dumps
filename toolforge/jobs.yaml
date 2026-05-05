@@ -8,9 +8,11 @@
   retry: 2
   mount: all
   emails: onfailure
+  timeout: 21600
 
 - name: wikidata-geo-dumps-test
   image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps:latest
   command: generate --test
   mount: all
   emails: onfailure
+  timeout: 600
