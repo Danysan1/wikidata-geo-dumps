@@ -8,6 +8,7 @@
   retry: 1
   mount: all
   emails: onfailure
+  cpu: 4
   timeout: 28800
 
 - name: wikidata-geo-dumps-test

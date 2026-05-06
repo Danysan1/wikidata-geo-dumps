@@ -1,5 +1,7 @@
 [com.heroku.buildpacks.deb-packages]
 install = [
     "gdal-bin",
-    "jq"
+    "jq",
+    "parallel",
+    "pigz"
 ]
