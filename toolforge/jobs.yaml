@@ -5,13 +5,12 @@
   command: generate
   image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps:latest
   schedule: "@daily"
-  retry: 2
+  retry: 1
   mount: all
   emails: onfailure
-  timeout: 21600
+  timeout: 28800
 
 - name: wikidata-geo-dumps-test
   image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps:latest
   command: generate --test
   mount: all
-  emails: onfailure

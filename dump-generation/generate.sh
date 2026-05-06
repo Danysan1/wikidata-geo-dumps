@@ -1,7 +1,13 @@
 #!/bin/bash
 
-#region Setup filtering & conversion
+#region Configs
 SOURCE_DUMP='/public/dumps/public/wikidatawiki/entities/latest-all.json.gz'
+SPLIT_COMPLEX_ITEMS=false # Using the same filters and 1M source dump lines, splitting complex items reduces the filtering time from 9m37s to 7m9s
+LANGUAGES=en # TODO use
+PROPERTIES=P31 # TODO use
+#endregion
+
+#region Setup
 if [ ! -f "$SOURCE_DUMP" ]; then
     echo "Source dump missing: $SOURCE_DUMP"
     exit 1
@@ -25,13 +31,12 @@ TMP_DIR=$(mktemp -d)
 #endregion
 
 #region Filter and convert to GeoJSONSeq
-SPLIT_COMPLEX_ITEMS=true # Using the same filters and 1M source dump lines, splitting complex items reduces the filtering time from 9m37s to 7m9s
 COMPLEX_GREP_FILTER='P585":|P376":|P580":|P571":|P1619":|P582":|P576":|P3999":'
 COMPLEX_ITEMS_PATH="$TMP_DIR/complex.ndjson"
 
 # Options documentation in https://codeberg.org/maxlath/wikibase-dump-filter/src/branch/main/docs/cli.md
 declare -a filter_options
-filter_options+=(--omit aliases,descriptions,sitelinks --languages mul,en --claim 'P625&~P585&~P376&~P580&~P571&~P1619&~P582&~P576&~P3999')
+filter_options+=(--omit aliases,descriptions,sitelinks --languages mul,$LANGUAGES --claim 'P625&~P585&~P376&~P580&~P571&~P1619&~P582&~P576&~P3999')
 # P625 (coordinates) must be present
 # P585 (date) or P376 (located on astronomical body) must be absent
 #TODO Allow P3896 (geoshape) alternatively to P625
