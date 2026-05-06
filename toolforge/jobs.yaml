@@ -3,7 +3,7 @@
 
 - name: wikidata-geo-dumps-generate
   command: generate
-  cpu: 3
+  cpu: 2
   image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps:latest
   mount: all
   schedule: "@daily"
@@ -13,6 +13,6 @@
 
 - name: wikidata-geo-dumps-test
   command: generate --test
-  cpu: 3
+  cpu: 2
   image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps:latest
   mount: all

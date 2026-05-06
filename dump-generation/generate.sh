@@ -76,10 +76,12 @@ if [ -f "$PLACES_GEOJSONSEQ_PATH" ]; then
     echo "$PLACES_GEOJSONSEQ_PATH already exists"
 else
     echo "Filtering $PLACES_GEOJSONSEQ_PATH from $SOURCE_DUMP"
+    # In TEST_MODE we get only a subset of the source dump, after grep it's around 189k lines / 3GB
+    # It's hard to know the size of the uncompressed full dump, surely 150+ GB, probably after grep around 300GB
     time pigz -dc "$SOURCE_DUMP" \
         | ($TEST_MODE && head -1000000 || cat -) \
         | grep 'P625":' \
-        | parallel --pipe --block 10M -j 0 --keep-order=0 jq --raw-input -c "$JQ_FILTER" \
+        | parallel --pipe --block 500M -j 0 --fast --line-buffer jq --raw-input -c "$JQ_FILTER" \
         > "$PLACES_GEOJSONSEQ_PATH"
 fi
 #endregion

@@ -46,7 +46,7 @@ toolforge jobs load toolforge/jobs.yaml
 
 ## Web interface — design system & accessibility
 
-`dist/index.html` is the landing page. All changes to it must follow:
+All changes to the web pages must follow:
 
 ### Wikimedia Codex design system
 - Load Codex CSS from CDN: `https://cdn.jsdelivr.net/npm/@wikimedia/codex/dist/codex.style.css`
@@ -74,4 +74,3 @@ toolforge jobs load toolforge/jobs.yaml
 - Production filtering inside `generate.sh` is currently guarded by `exit 1` until the filter rules are finalized. Only `--test` mode actually runs end-to-end today.
 - The pipeline is heavily idempotent: each step skips if its output file already exists. To force regeneration, delete the corresponding file under `$TOOL_DATA_DIR/dist/dumps/<date>/`.
 - The jq filter operates on the raw Wikidata JSON dump format (`claims.P625[i].mainsnak.datavalue.value.{longitude,latitude}`), not on any simplified shape. The filter `select(...)` guards silently drop anything that doesn't match this exact shape — if Wikidata changes the dump format the output will go empty rather than fail loudly.
-- `dump-generation/places.json` and `dump-generation/x.geojson` in the working tree are local scratch files — they are not consumed by the pipeline.
