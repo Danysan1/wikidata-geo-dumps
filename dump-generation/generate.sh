@@ -43,11 +43,11 @@ else
     echo "Filtering $PLACES_GEOJSONSEQ_PATH from $SOURCE_DUMP"
     # In TEST_MODE we get only a subset of the source dump, after grep it's around 189k lines / 3GB
     # It's hard to know the size of the uncompressed full dump, surely 150+ GB, probably after grep around 300GB
-    # Filter passed via file because parallel --round-robin invokes the command through a shell, which would otherwise interpret the | metacharacters in $JQ_FILTER as pipes.
+    # Filter passed via file because parallel invokes the command through a shell, which would otherwise interpret the | metacharacters in the inline filter as pipes.
     time pigz -dc "$SOURCE_DUMP" \
         | if $TEST_MODE; then head -1000000; else cat; fi \
         | grep 'P625":' \
-        | parallel --pipe --round-robin --block 500M -j 2 --line-buffer jq --raw-input -c -f "$SCRIPT_DIR/filter.jq" \
+        | parallel --pipe --block 10M -j 2 --line-buffer jq --raw-input -c -f "$SCRIPT_DIR/filter.jq" \
         > "$PLACES_GEOJSONSEQ_PATH"
 fi
 #endregion
