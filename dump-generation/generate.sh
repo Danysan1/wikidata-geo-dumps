@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #region Configs
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DUMP='/public/dumps/public/wikidatawiki/entities/latest-all.json.gz'
 LANGUAGES=en # TODO use
 PROPERTIES=P31 # TODO use
@@ -31,17 +32,22 @@ PLACES_GEOPARQUET_PATH="$OUT_DUMPS_DIR/places.parquet"
 
 #region Filter and convert to GeoJSONSeq
 mkdir -p "$OUT_DUMPS_DIR"
-if [ -f "$PLACES_GEOJSONSEQ_PATH" ]; then
+if [ -s "$PLACES_GEOJSONSEQ_PATH" ]; then
     echo "$PLACES_GEOJSONSEQ_PATH already exists"
 else
+    if [ -f "$PLACES_GEOJSONSEQ_PATH" ]; then
+        echo "$PLACES_GEOJSONSEQ_PATH exists but is empty, deleting and re-creating it"
+        rm "$PLACES_GEOJSONSEQ_PATH"
+    fi
+
     echo "Filtering $PLACES_GEOJSONSEQ_PATH from $SOURCE_DUMP"
     # In TEST_MODE we get only a subset of the source dump, after grep it's around 189k lines / 3GB
     # It's hard to know the size of the uncompressed full dump, surely 150+ GB, probably after grep around 300GB
     # Filter passed via file because parallel --round-robin invokes the command through a shell, which would otherwise interpret the | metacharacters in $JQ_FILTER as pipes.
     time pigz -dc "$SOURCE_DUMP" \
-        | ($TEST_MODE && head -1000000 || cat -) \
+        | if $TEST_MODE; then head -1000000; else cat; fi \
         | grep 'P625":' \
-        | parallel --pipe --round-robin --block 500M -j 2 --line-buffer jq --raw-input -c -f filter.jq \
+        | parallel --pipe --round-robin --block 500M -j 2 --line-buffer jq --raw-input -c -f "$SCRIPT_DIR/filter.jq" \
         > "$PLACES_GEOJSONSEQ_PATH"
 fi
 #endregion
