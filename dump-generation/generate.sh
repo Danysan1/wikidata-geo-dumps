@@ -81,7 +81,7 @@ else
     time pigz -dc "$SOURCE_DUMP" \
         | ($TEST_MODE && head -1000000 || cat -) \
         | grep 'P625":' \
-        | parallel --pipe --block 500M -j 0 --fast --line-buffer jq --raw-input -c "$JQ_FILTER" \
+        | parallel --pipe --block 500M -j 0 --line-buffer jq --raw-input -c "$JQ_FILTER" \
         > "$PLACES_GEOJSONSEQ_PATH"
 fi
 #endregion
