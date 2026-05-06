@@ -3,15 +3,16 @@
 
 - name: wikidata-geo-dumps-generate
   command: generate
+  cpu: 3
   image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps:latest
+  mount: all
   schedule: "@daily"
   retry: 1
-  mount: all
   emails: onfailure
-  cpu: 4
   timeout: 28800
 
 - name: wikidata-geo-dumps-test
-  image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps:latest
   command: generate --test
+  cpu: 3
+  image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps:latest
   mount: all
