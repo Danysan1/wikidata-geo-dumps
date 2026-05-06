@@ -9,7 +9,10 @@
 #TODO Allow P580, P571, P1619 (start dates) with values in the past
 #TODO Allow P582, P576, P3999 (end dates) with values in the future
 
-try fromjson catch empty
+# Wikidata JSON dump is a JSON array: lines look like `{...},` (trailing comma)
+# Strip the trailing comma so fromjson succeeds
+rtrimstr(",")
+| try fromjson catch empty
 | select(type == "object")
 | select(.claims.P625)
 | select(.claims.P585 == null and .claims.P376 == null
