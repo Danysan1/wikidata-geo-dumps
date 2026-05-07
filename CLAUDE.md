@@ -23,7 +23,7 @@ The repo has three loosely coupled pieces glued together by the Toolforge buildp
 
 Toolforge uses a Heroku-style buildpack. `project.toml` declares apt packages `gdal-bin` (provides `ogr2ogr`), `jq` (NDJSON → GeoJSONSeq conversion), `parallel` (fans the jq stage across cores), and `pigz` (parallel gzip decompression), as documented in https://wikitech.wikimedia.org/wiki/Help:Toolforge/Building_container_images#Installing_Apt_packages . `requirements.txt` adds the Python deps used in the FGB → GeoParquet step (`geopandas`, `pyarrow`). There is no node-side build step — `dist/` is committed as-is.
 
-`Procfile` defines two process types: `web` (the static server) and `generate` (the dump pipeline). Toolforge's `jobs.yaml` references `command: generate` (and `generate --test`), which invokes the Procfile entry. The production job runs `@daily` with `cpu: 2`, `mem: 6Gi`, `timeout: 28800` (8 h), `retry: 1` — keep these in mind when changing the pipeline's resource profile.
+`Procfile` defines two process types: `web` (the static server) and `generate` (the dump pipeline). Toolforge's `jobs.yaml` references `command: generate` (and `generate --test`), which invokes the Procfile entry. The production job runs `@daily` with `cpu: 2`, `mem: 2Gi`, `timeout: 28800` (8 h), `retry: 1` — keep these in mind when changing the pipeline's resource profile.
 
 ## Common commands
 
