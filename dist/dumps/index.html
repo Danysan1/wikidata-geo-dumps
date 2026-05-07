@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available dumps — Wikidata Geographic Dumps</title>
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@wikimedia/codex/dist/codex.style.css"
+    >
+    <style>
+        body {
+            font-family:
+                -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                Lato, Helvetica, Arial, sans-serif;
+            font-size: var(--font-size-medium, 1rem);
+            line-height: 1.6;
+            color: var(--color-base, #202122);
+            background-color: var(--background-color-base, #fff);
+            max-width: 60rem;
+            margin: 0 auto;
+            padding: var(--spacing-100, 1rem) var(--spacing-150, 1.5rem);
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: bold;
+            margin: 0 0 var(--spacing-100, 1rem);
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin: var(--spacing-150, 1.5rem) 0 var(--spacing-50, 0.5rem);
+        }
+
+        p {
+            margin: 0 0 var(--spacing-100, 1rem);
+        }
+
+        ul {
+            margin: 0 0 var(--spacing-100, 1rem);
+            padding-left: var(--spacing-150, 1.5rem);
+            line-height: 1.8;
+        }
+
+        a {
+            color: var(--color-progressive, #3366cc);
+        }
+
+        a:hover {
+            color: var(--color-progressive--hover, #2a4b8d);
+        }
+
+        code {
+            font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', Menlo, monospace;
+            font-size: 0.875em;
+            background-color: var(--background-color-neutral, #eaecf0);
+            padding: 0.1em 0.35em;
+            border-radius: var(--border-radius-base, 2px);
+        }
+
+        .wgd-skip-link {
+            position: absolute;
+            left: -9999px;
+            top: var(--spacing-100, 1rem);
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            background: var(--background-color-base, #fff);
+            color: var(--color-progressive, #3366cc);
+            padding: var(--spacing-50, 0.5rem) var(--spacing-100, 1rem);
+            border: 1px solid var(--color-progressive, #3366cc);
+            border-radius: var(--border-radius-base, 2px);
+            text-decoration: none;
+            z-index: 9999;
+        }
+
+        .wgd-skip-link:focus {
+            left: var(--spacing-100, 1rem);
+            width: auto;
+            height: auto;
+            overflow: visible;
+            outline: var(--outline-width-focus-ring, 2px) solid
+                var(--color-progressive, #3366cc);
+            outline-offset: 2px;
+        }
+
+        header {
+            border-bottom: 1px solid var(--border-color-base, #a2a9b1);
+            margin-bottom: var(--spacing-150, 1.5rem);
+            padding-bottom: var(--spacing-100, 1rem);
+        }
+
+        footer {
+            margin-top: var(--spacing-200, 2rem);
+            padding-top: var(--spacing-100, 1rem);
+            border-top: 1px solid var(--border-color-base, #a2a9b1);
+            color: var(--color-subtle, #54595d);
+            font-size: var(--font-size-small, 0.875rem);
+        }
+
+        .wgd-footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            line-height: normal;
+        }
+
+        .wgd-footer-links li + li::before {
+            content: " | ";
+            padding: 0 var(--spacing-50, 0.5rem);
+        }
+
+        .wgd-footer-links a {
+            color: inherit;
+        }
+
+        .wgd-footer-links a:hover {
+            color: var(--color-base, #202122);
+        }
+
+        .wgd-file-size {
+            color: var(--color-subtle, #54595d);
+            font-size: var(--font-size-small, 0.875rem);
+            margin-left: var(--spacing-50, 0.5rem);
+        }
+
+        .wgd-status {
+            color: var(--color-subtle, #54595d);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <a class="wgd-skip-link" href="#main-content">Skip to main content</a>
+
+    <header>
+        <h1>Available dumps</h1>
+        <p>
+            <a href="/">← Back to home</a>
+        </p>
+    </header>
+
+    <main id="main-content">
+        <p>
+            Each dump is named after the date of the source Wikidata JSON dump
+            it was generated from. Click any file to download it.
+        </p>
+
+        <div id="wgd-dumps-container" aria-live="polite">
+            <p class="wgd-status">Loading dump list…</p>
+        </div>
+    </main>
+
+    <footer>
+        <nav aria-label="Site links">
+            <ul class="wgd-footer-links">
+                <li>
+                    <a href="https://gitlab.wikimedia.org/toolforge-repos/wikidata-geo-dumps">
+                        Source code on GitLab
+                    </a>
+                </li>
+                <li>
+                    <a href="https://github.com/Danysan1/wikidata-geo-dumps/issues">
+                        Issues on GitHub
+                    </a>
+                </li>
+                <li>
+                    <a href="https://phabricator.wikimedia.org/project/board/8689/">
+                        Tasks on Phabricator
+                    </a>
+                </li>
+                <li>
+                    <a href="https://dumps.wikimedia.org/wikidatawiki/entities/">
+                        Source dumps
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </footer>
+
+    <script>
+        const container = document.getElementById('wgd-dumps-container');
+
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"']/g, c => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;',
+                '"': '&quot;', "'": '&#39;'
+            })[c]);
+        }
+
+        function formatBytes(bytes) {
+            if (!Number.isFinite(bytes)) return '';
+            if (bytes < 1024) return `${bytes} B`;
+            const units = ['KB', 'MB', 'GB', 'TB'];
+            let value = bytes / 1024;
+            let unitIndex = 0;
+            while (value >= 1024 && unitIndex < units.length - 1) {
+                value /= 1024;
+                unitIndex++;
+            }
+            return `${value.toFixed(1)} ${units[unitIndex]}`;
+        }
+
+        function render(dumps) {
+            if (!dumps || dumps.length === 0) {
+                container.innerHTML = '<p class="wgd-status">No dumps available yet.</p>';
+                return;
+            }
+            container.innerHTML = dumps.map(dump => {
+                const date = escapeHtml(dump.date);
+                const items = (dump.files || []).map(f => {
+                    const name = escapeHtml(f.name);
+                    const href = `${encodeURIComponent(dump.date)}/${encodeURIComponent(f.name)}`;
+                    return `<li>
+                        <a href="${href}"><code>${name}</code></a>
+                        <span class="wgd-file-size">${escapeHtml(formatBytes(f.size))}</span>
+                    </li>`;
+                }).join('');
+                return `<section>
+                    <h2 id="dump-${date}">${date}</h2>
+                    ${items ? `<ul>${items}</ul>` : '<p class="wgd-status">No files.</p>'}
+                </section>`;
+            }).join('');
+        }
+
+        fetch('index.json', { cache: 'no-cache' })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+            })
+            .then(data => render(data.dumps))
+            .catch(err => {
+                console.error('Failed to load dump index', err);
+                container.innerHTML =
+                    '<p class="wgd-status">Could not load the dump list. ' +
+                    'The index may not have been generated yet.</p>';
+            });
+    </script>
+</body>
+</html>

@@ -75,3 +75,11 @@ fi
 #endregion
 
 echo 'Filtering & conversion completed'
+
+#region Generate dumps index
+# Lists every dump folder under dist/dumps/ (excluding *-test) and the files inside,
+# so dist/dumps/index.html can render a static index page at /dumps/.
+DUMPS_INDEX_PATH="$TOOL_DATA_DIR/dist/dumps/index.json"
+echo "Generating $DUMPS_INDEX_PATH"
+python3 "$SCRIPT_DIR/generate-index.py" "$TOOL_DATA_DIR/dist/dumps" > "$DUMPS_INDEX_PATH"
+#endregion
