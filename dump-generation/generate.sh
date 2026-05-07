@@ -46,8 +46,8 @@ else
     # Filter passed via file because parallel invokes the command through a shell, which would otherwise interpret the | metacharacters in the inline filter as pipes.
     time pigz -dc "$SOURCE_DUMP" \
         | if $TEST_MODE; then head -1000000; else cat; fi \
-        | grep 'P625":[{"main' \
-        | grep -v 'P585":[{"main' \
+        | grep -F 'P625":[{"m' \
+        | grep -Fv 'P585":[{"m' \
         | parallel --pipe --block 10M -j 2 --line-buffer jq --raw-input -c -f "$SCRIPT_DIR/filter.jq" \
         > "$PLACES_GEOJSONSEQ_PATH"
 fi
