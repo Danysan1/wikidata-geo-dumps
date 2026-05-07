@@ -4,6 +4,6 @@
   },
   "scripts": {
     "dev": "serve dist",
-    "start": "cp dist/* $TOOL_DATA_DIR/dist/ && serve $TOOL_DATA_DIR/dist"
+    "start": "cp -r dist/. $TOOL_DATA_DIR/dist/ && serve $TOOL_DATA_DIR/dist"
   }
 }
