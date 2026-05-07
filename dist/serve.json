@@ -2,7 +2,7 @@
   "directoryListing": ["/dumps", "/dumps/**"],
   "headers": [
     {
-      "source": "dumps/**/*.parquet",
+      "source": "**/*.@(fgb|parquet|pmtiles)",
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Cross-Origin-Resource-Policy", "value": "cross-origin" }
