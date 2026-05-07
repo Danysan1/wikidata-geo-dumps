@@ -31,7 +31,8 @@ rtrimstr(",")
     properties: {
         id: $item.id,
         "name": $item.labels.mul.value,
-        "name:en": $item.labels.en.value
+        "name:en": $item.labels.en.value,
+        "commons": $item.sitelinks.commonswiki.title
     },
     geometry: {
         type: "Point",
