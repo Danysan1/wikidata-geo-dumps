@@ -67,6 +67,12 @@
             color: var(--color-progressive--hover, #2a4b8d);
         }
 
+        a:focus-visible {
+            outline: var(--outline-width-focus-ring, 2px) solid var(--color-progressive, #3366cc);
+            outline-offset: 2px;
+            border-radius: var(--border-radius-base, 2px);
+        }
+
         code {
             font-family: 'SFMono-Regular', 'Consolas', 'Liberation Mono', Menlo, monospace;
             font-size: 0.875em;
@@ -139,6 +145,18 @@
         .wgd-footer-links a:hover {
             color: var(--color-base, #202122);
         }
+
+        /* ── Dump listing ─────────────────────────────────────────── */
+        .wgd-file-size {
+            color: var(--color-subtle, #54595d);
+            font-size: var(--font-size-small, 0.875rem);
+            margin-left: var(--spacing-50, 0.5rem);
+        }
+
+        .wgd-status {
+            color: var(--color-subtle, #54595d);
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -157,14 +175,6 @@
             and represent currently existing features.
         </p>
 
-        <h2>Available dumps</h2>
-        <p>
-            <a
-                class="cdx-button cdx-button--fake-button cdx-button--weight-primary cdx-button--action-progressive"
-                href="/dumps/"
-            >Browse available dump dates</a>
-        </p>
-
         <h2>File formats</h2>
         <ul>
             <li>
@@ -180,6 +190,18 @@
                 <a href="https://geoparquet.org/">GeoParquet</a>
             </li>
         </ul>
+
+        <h2>Available dumps</h2>
+        <p>
+            Each dump is named after the date of the source Wikidata JSON dump
+            it was generated from. Click any file to download it.
+            For scripted access, the machine-readable index is available at
+            <a href="dumps/index.json"><code>dumps/index.json</code></a>.
+        </p>
+
+        <div id="wgd-dumps-container" aria-live="polite" aria-busy="true">
+            <p class="wgd-status">Loading dump list…</p>
+        </div>
     </main>
 
     <footer>
@@ -208,5 +230,7 @@
             </ul>
         </nav>
     </footer>
+
+    <script src="dumps-listing.js"></script>
 </body>
 </html>
