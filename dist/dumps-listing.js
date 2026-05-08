@@ -31,9 +31,15 @@ function render(dumps) {
         const items = (dump.files || []).map(f => {
             const name = escapeHtml(f.name);
             const href = `dumps/${encodeURIComponent(dump.date)}/${encodeURIComponent(f.name)}`;
+            let visualize = '';
+            if (f.name.endsWith('.parquet')) {
+                const absoluteUrl = new URL(href, window.location.href).href;
+                const viewerUrl = `https://geoparquet.info/?url=${encodeURIComponent(encodeURIComponent(absoluteUrl))}`;
+                visualize = ` <a href="${escapeHtml(viewerUrl)}" target="_blank" rel="noopener">visualize</a>`;
+            }
             return `<li>
                         <a href="${href}" download><code>${name}</code></a>
-                        <span class="wgd-file-size">${escapeHtml(formatBytes(f.size))}</span>
+                        <span class="wgd-file-size">${escapeHtml(formatBytes(f.size))}</span>${visualize}
                     </li>`;
         }).join('');
         return `<section>
