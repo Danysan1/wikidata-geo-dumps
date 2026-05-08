@@ -66,16 +66,11 @@ fi
 if [ -f "$PLACES_GEOPARQUET_PATH" ]; then
     echo "$PLACES_GEOPARQUET_PATH already exists"
 else
-    echo "Converting $PLACES_FLATGEOBUF_PATH to $PLACES_GEOPARQUET_PATH"
+    echo "Converting $PLACES_GEOJSONSEQ_PATH to $PLACES_GEOPARQUET_PATH"
     #time ogr2ogr -f Parquet "$PLACES_GEOPARQUET_PATH" "$PLACES_FLATGEOBUF_PATH" #! Requires conda-forge and libgdal-arrow-parquet which aren't available in Toolforge
-    time python3 - <<EOF
-import geopandas as gpd
-gpd.read_file("$PLACES_FLATGEOBUF_PATH", driver="FlatGeobuf").to_parquet("$PLACES_GEOPARQUET_PATH")
-EOF
+    time python3 "$SCRIPT_DIR/geojsonseq-to-parquet.py" "$PLACES_GEOJSONSEQ_PATH" "$PLACES_GEOPARQUET_PATH"
 fi
 #endregion
-
-echo 'Filtering & conversion completed'
 
 #region Generate dumps index
 # Lists every dump folder under dist/dumps/ (excluding *-test) and the files inside,
@@ -84,3 +79,5 @@ DUMPS_INDEX_PATH="$TOOL_DATA_DIR/dist/dumps/index.json"
 echo "Generating $DUMPS_INDEX_PATH"
 python3 "$SCRIPT_DIR/generate-index.py" "$TOOL_DATA_DIR/dist/dumps" > "$DUMPS_INDEX_PATH"
 #endregion
+
+echo 'Filtering & conversion completed'
