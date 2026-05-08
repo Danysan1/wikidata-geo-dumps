@@ -34,8 +34,8 @@ function render(dumps) {
             let visualize = '';
             if (f.name.endsWith('.parquet')) {
                 const absoluteUrl = new URL(href, window.location.href).href;
-                const viewerUrl = `https://geoparquet.info/?url=${encodeURIComponent(encodeURIComponent(absoluteUrl))}`;
-                visualize = ` <a href="${escapeHtml(viewerUrl)}" target="_blank" rel="noopener">visualize</a>`;
+                const viewerUrl = `https://geoparquet.info/?url=${encodeURIComponent(absoluteUrl)}`;
+                visualize = ` (<a href="${escapeHtml(viewerUrl)}" target="_blank" rel="noopener">visualize online</a>)`;
             }
             return `<li>
                         <a href="${href}" download><code>${name}</code></a>
