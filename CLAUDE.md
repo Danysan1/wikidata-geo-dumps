@@ -18,7 +18,7 @@ The repo has three loosely coupled pieces glued together by the Toolforge buildp
 
 Toolforge uses a Heroku-style buildpack. `project.toml` declares apt packages (`gdal-bin`, `jq`, `parallel`, `pigz`); `requirements.txt` adds Python deps (`geopandas`, `pyarrow`). No node-side build step — `dist/` is committed as-is.
 
-`Procfile` defines two process types: `web` (static server) and `generate` (dump pipeline). `toolforge/jobs.yaml` schedules `generate` daily with `cpu: 2`, `mem: 2Gi`, `timeout: 28800`.
+`Procfile` defines two process types: `web` (static server) and `generate` (dump pipeline). `toolforge/jobs.yaml` schedules `generate` daily with `cpu: 2`, `mem: 4Gi`, `timeout: 28800`.
 
 ## Common commands
 

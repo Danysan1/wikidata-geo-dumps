@@ -5,7 +5,7 @@
   command: generate
   cpu: 2
   image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps:latest
-  mem: 2Gi
+  mem: 4Gi
   mount: all
   schedule: "@daily"
   retry: 1
@@ -16,5 +16,5 @@
   command: generate --test
   cpu: 2
   image: tool-wikidata-geo-dumps/tool-wikidata-geo-dumps:latest
-  mem: 2Gi
+  mem: 1Gi
   mount: all
